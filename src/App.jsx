@@ -3,15 +3,7 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 ১. এখানে আপনি কাস্টমারদের পাসকোড যোগ করবেন
-const VALID_PASSCODES = [
-  "AGENT99",      // প্রথম কাস্টমারের জন্য
-  "CLIENT01",     // দ্বিতীয় কাস্টমারের জন্য
-  "CLIENT02",     // তৃতীয় কাস্টমারের জন্য
-  "PRO2024"       // চতুর্থ কাস্টমারের জন্য
-];
-
-// 🚨 ২. সিকিউরিটি গার্ড
+// 🚨 ১. সিকিউরিটি গার্ড
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
   
@@ -27,17 +19,17 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ
+// 🚨 ২. ল্যান্ডিং পেজ
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   
-  // ধাপ ট্র্যাকিং (১. ইমেইল দেওয়া, ২. পাসকোড দেওয়া)
   const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [generatedPasscode, setGeneratedPasscode] = useState('');
 
-  // প্রথম ধাপ: ইমেইল সাবমিট করা
+  // প্রথম ধাপ: ইমেইল সাবমিট করা এবং অটোমেটিক পাসকোড তৈরি করা
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -49,15 +41,24 @@ function LandingPage() {
     setError('');
 
     try {
+      // ইমেইল থেকে একটি ইউনিক পাসকোড তৈরি করা (যেমন: AGENT-X8F9)
+      const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const autoPasscode = `AGENT-${randomString}`;
+      setGeneratedPasscode(autoPasscode); // পাসকোডটি স্টেটে সেভ করা হলো
+
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, message: "New customer waiting for passcode." })
+        body: JSON.stringify({ 
+            email: email, 
+            message: `New customer payment. Email: ${email}. Auto-generated Passcode: ${autoPasscode}` 
+        })
       });
       
       setLoading(false);
-      setStep(2); // ইমেইল পাঠানোর পর পাসকোড বক্স দেখাবে
+      setStep(2); // পাসকোড বক্স দেখাবে
+      
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -67,12 +68,14 @@ function LandingPage() {
   // দ্বিতীয় ধাপ: পাসকোড ভেরিফাই করা
   const handlePasscodeSubmit = (e) => {
     e.preventDefault();
-    if (VALID_PASSCODES.includes(passcode.toUpperCase())) {
+    
+    // কাস্টমার যে পাসকোডটি লিখেছে এবং আমরা যে পাসকোডটি তৈরি করেছি, তা মিলিয়ে দেখা
+    if (passcode.toUpperCase() === generatedPasscode) {
       localStorage.setItem('has_access', 'true');
       localStorage.setItem('customer_email', email); 
       window.location.href = '/dashboard'; 
     } else {
-      setError("Invalid passcode. Please check your email.");
+      setError("Invalid passcode. Please check the passcode you received.");
     }
   };
 
@@ -117,12 +120,12 @@ function LandingPage() {
           <>
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Passcode</h3>
             <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px', fontWeight: 'bold' }}>
-              Email submitted! Please check your inbox for the passcode, or contact support.
+              Email submitted! Check your inbox for your unique passcode.
             </p>
             <form onSubmit={handlePasscodeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
                 type="text" 
-                placeholder="Enter Passcode (e.g., AGENT99)" 
+                placeholder="Enter your unique passcode" 
                 value={passcode} 
                 onChange={(e) => setPasscode(e.target.value)}
                 required
