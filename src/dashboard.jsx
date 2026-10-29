@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [propertyDetails, setPropertyDetails] = useState('');
   const [description, setDescription] = useState('');
 
-  // 🚨 পেমেন্ট হ্যান্ডলিং (প্রম্পট দিয়ে সিকিউর করা)
+  // 🚨 পেমেন্ট হ্যান্ডলিং
   const handlePayment = (plan) => {
     const paypalLink = plan === 'lifetime' 
       ? 'https://www.paypal.com/paypalme/Sumansingharoy/99' 
@@ -37,7 +37,7 @@ export default function Dashboard() {
     window.open(paypalLink, '_blank');
     
     const enteredCode = window.prompt("Please enter the Access Code you received after payment:");
-    const SECRET_ACCESS_CODE = "PRO999"; // 🚨 আপনার সিক্রেট কোড
+    const SECRET_ACCESS_CODE = "PRO999"; 
 
     if (enteredCode && enteredCode.toUpperCase() === SECRET_ACCESS_CODE) {
       localStorage.setItem('user_plan', 'pro');
@@ -58,7 +58,8 @@ export default function Dashboard() {
     setLoading(true);
     setResult('');
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
+      // 🚨 এখানে মডেলের নাম পরিবর্তন করা হয়েছে
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
