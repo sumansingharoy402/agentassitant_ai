@@ -32,7 +32,7 @@ export default function AdminAuth() {
     }
   };
 
-  // 🚨 অ্যাক্সেস বাতিল করা (Un-access)
+  // 🚨 Un-access ফাংশন (অ্যাক্সেস বাতিল)
   const handleRemoveAccess = (emailToRemove) => {
     const updatedList = authorizedList.filter((email) => email !== emailToRemove);
     localStorage.setItem('authorized_emails', JSON.stringify(updatedList));
@@ -43,7 +43,7 @@ export default function AdminAuth() {
   return (
     <div style={{ textAlign: 'center', marginTop: '80px', fontFamily: 'Arial, sans-serif' }}>
       <h1 style={{ color: '#e74c3c' }}>🔐 Secret Admin Panel</h1>
-      <p>Enter the customer's email to grant access or revoke access.</p>
+      <p>Enter the customer's email here to grant or revoke access.</p>
       
       <form onSubmit={handleAuthorize} style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
         <input 
@@ -72,7 +72,6 @@ export default function AdminAuth() {
             {authorizedList.map((email, index) => (
               <li key={index} style={{ padding: '12px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{email}</span>
-                
                 {/* 🚨 Un-access বাটন */}
                 <button 
                   onClick={() => handleRemoveAccess(email)}
