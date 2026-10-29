@@ -8,14 +8,11 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  const [apiKey, setApiKey] = useState('');
+  // 🚨 এখানে আপনার গ্লোবাল API Key বসান
+  const GLOBAL_API_KEY = "AIzaSy...আপনার_আসল_কী_এখানে_দিন"; 
+  
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
-  useEffect(() => {
-    const savedKey = localStorage.getItem('user_gemini_key');
-    if (savedKey) setApiKey(savedKey);
-  }, [activeTab]);
-
   const [clientName, setClientName] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [tone, setTone] = useState('Professional');
@@ -28,7 +25,6 @@ export default function Dashboard() {
   const [propertyDetails, setPropertyDetails] = useState('');
   const [description, setDescription] = useState('');
 
-  // 🚨 পেমেন্ট হ্যান্ডলিং
   const handlePayment = (plan) => {
     const paypalLink = plan === 'lifetime' 
       ? 'https://www.paypal.com/paypalme/Sumansingharoy/99' 
@@ -50,20 +46,15 @@ export default function Dashboard() {
   };
 
   const callGeminiAPI = async (prompt, setResult) => {
-    if (!apiKey) {
-      setResult("Error: Please go to Settings and enter your Gemini API Key first.");
-      return;
-    }
-
     setLoading(true);
     setResult('');
     try {
-      // 🚨 এখানে মডেলের নাম পরিবর্তন করা হয়েছে
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
+      // 🚨 এখানে নতুন মডেল gemini-3.8-flash এবং গ্লোবাল API Key ব্যবহার করা হচ্ছে
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey 
+            'x-goog-api-key': GLOBAL_API_KEY 
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }]
