@@ -1,1 +1,2 @@
 https://agentassitant-ai.vercel.app/
+https://agentassitant-ai.vercel.app
