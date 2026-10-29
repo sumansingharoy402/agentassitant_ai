@@ -3,7 +3,18 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 ১. সিকিউরিটি গার্ড
+// 🚨 ১. আপনার অ্যাডমিন ইমেইল (এখানে নোটিফিকেশন আসবে)
+const ADMIN_EMAIL = "sumansingharoy402@gmail.com";
+
+// 🚨 ২. আপনার তৈরি করা পাসকোডের তালিকা (আপনি যত ইচ্ছা পাসকোড যোগ করতে পারেন)
+const CUSTOMER_PASSCODES = [
+  "CLIENT001",    // প্রথম কাস্টমারের জন্য
+  "CLIENT002",    // দ্বিতীয় কাস্টমারের জন্য
+  "CLIENT003",    // তৃতীয় কাস্টমারের জন্য
+  "PRO2024"       // চতুর্থ কাস্টমারের জন্য
+];
+
+// 🚨 ৩. সিকিউরিটি গার্ড (পাসকোড ছাড়া কেউ ঢুকতে পারবে না)
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
   
@@ -11,7 +22,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'Arial, sans-serif' }}>
         <h2>🔒 Access Restricted</h2>
-        <p>You do not have access. Please complete your payment and enter the passcode.</p>
+        <p>You do not have access. Please verify your payment.</p>
         <a href="/" style={{ color: '#3498db', fontWeight: 'bold' }}>Go to Home</a>
       </div>
     );
@@ -19,7 +30,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ২. ল্যান্ডিং পেজ
+// 🚨 ৪. ল্যান্ডিং পেজ
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
@@ -27,9 +38,8 @@ function LandingPage() {
   const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [generatedPasscode, setGeneratedPasscode] = useState('');
 
-  // প্রথম ধাপ: ইমেইল সাবমিট করা এবং ইউনিক পাসকোড তৈরি করা
+  // ধাপ ১: কাস্টমার ইমেইল দেবে, সিস্টেম আপনার কাছে নোটিফিকেশন পাঠাবে
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -41,19 +51,14 @@ function LandingPage() {
     setError('');
 
     try {
-      // কাস্টমারের ইমেইলের জন্য একটি ইউনিক পাসকোড তৈরি করা
-      const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
-      const autoPasscode = `AGENT-${randomString}`;
-      setGeneratedPasscode(autoPasscode); 
-
-      // আপনার Formspree-তে ইমেইল এবং পাসকোড পাঠানো হচ্ছে
+      // আপনার Formspree-তে নোটিফিকেশন পাঠানো হচ্ছে
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-            email: email, 
-            message: `New customer payment. Email: ${email}. Auto-generated Passcode: ${autoPasscode}` 
+            email: ADMIN_EMAIL,
+            message: `New customer is waiting for passcode. Customer Email: ${email}` 
         })
       });
       
@@ -66,17 +71,17 @@ function LandingPage() {
     }
   };
 
-  // দ্বিতীয় ধাপ: পাসকোড ভেরিফাই করা
+  // ধাপ ২: পাসকোড ভেরিফাই করা
   const handlePasscodeSubmit = (e) => {
     e.preventDefault();
     
-    // কাস্টমার যে পাসকোডটি লিখেছে এবং আমরা যে পাসকোডটি তৈরি করেছি, তা মিলিয়ে দেখা
-    if (passcode.toUpperCase() === generatedPasscode) {
+    // আপনার লিস্টের পাসকোডের সাথে মিলছে কিনা চেক করা
+    if (CUSTOMER_PASSCODES.includes(passcode.toUpperCase())) {
       localStorage.setItem('has_access', 'true');
       localStorage.setItem('customer_email', email); 
       window.location.href = '/dashboard'; 
     } else {
-      setError("Invalid passcode. Please check the passcode you received.");
+      setError("Invalid passcode. Please contact the admin to get your passcode.");
     }
   };
 
@@ -98,11 +103,11 @@ function LandingPage() {
         {step === 1 ? (
           <>
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Verify Email</h3>
-            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter the email address you used for PayPal.</p>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter your email to request access after payment.</p>
             <form onSubmit={handleEmailSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
                 type="email" 
-                placeholder="Enter your PayPal email" 
+                placeholder="Enter your email address" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -113,7 +118,7 @@ function LandingPage() {
                 disabled={loading}
                 style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: loading ? '#95a5a6' : '#3498db', color: 'white', border: 'none', borderRadius: '5px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
               >
-                {loading ? "Verifying..." : "Next Step"}
+                {loading ? "Sending Request..." : "Request Access"}
               </button>
             </form>
           </>
@@ -121,7 +126,7 @@ function LandingPage() {
           <>
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Passcode</h3>
             <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px', fontWeight: 'bold' }}>
-              Email submitted! Check your inbox for your unique passcode.
+              Request sent! Please contact admin to get your passcode.
             </p>
             <form onSubmit={handlePasscodeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
