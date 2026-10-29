@@ -1,0 +1,1 @@
+"Please go to Settings and enter your own Gemini API Key. You can get a free key from Google AI Studio."

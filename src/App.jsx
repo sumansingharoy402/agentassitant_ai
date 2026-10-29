@@ -1,12 +1,25 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './dashboard';
+import Admin from './Admin'; // 🚨 নতুন: Admin কম্পোনেন্ট ইমপোর্ট
 
-// 🚨 পেমেন্ট চেক করার জন্য Protected Route
+// 🚨 পেমেন্ট এবং ব্লক চেক করার জন্য Protected Route
 const ProtectedRoute = ({ children }) => {
   const isPaid = localStorage.getItem('payment_status') === 'paid';
+  const userEmail = localStorage.getItem('user_email'); // কাস্টমারের ইমেইল
+  const blockedList = JSON.parse(localStorage.getItem('blocked_emails') || '[]');
   
+  // 🚨 যদি কাস্টমার ব্লক লিস্টে থাকে
+  if (blockedList.includes(userEmail)) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'Arial, sans-serif', color: '#e74c3c' }}>
+        <h2>🚫 Access Blocked</h2>
+        <p>Your access has been revoked. Please contact support.</p>
+      </div>
+    );
+  }
+  
+  // 🚨 যদি পেমেন্ট না করা থাকে
   if (!isPaid) {
-    // পেমেন্ট না হলে সরাসরি PayPal পেজে পাঠিয়ে দেওয়া হবে
     window.location.href = "https://www.paypal.com/paypalme/Sumansingharoy/99";
     return null;
   }
@@ -16,8 +29,13 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   // 🚨 "I have paid" বাটনের ফাংশন
   const handlePaid = () => {
-    localStorage.setItem('payment_status', 'paid');
-    window.location.href = '/dashboard';
+    // এখানে কাস্টমারের ইমেইল সেভ করা হচ্ছে (আপনি চাইলে ইনপুট নিতে পারেন)
+    const email = prompt("Please enter your email to activate access:");
+    if (email) {
+      localStorage.setItem('user_email', email);
+      localStorage.setItem('payment_status', 'paid');
+      window.location.href = '/dashboard';
+    }
   };
 
   return (
@@ -38,7 +56,7 @@ function App() {
               </button>
             </a>
 
-            {/* 🚨 নতুন: I have paid বাটন */}
+            {/* 🚨 I have paid বাটন */}
             <div style={{ marginTop: '20px' }}>
               <button 
                 onClick={handlePaid}
@@ -50,12 +68,15 @@ function App() {
           </div>
         } />
         
-        {/* 🚨 ড্যাশবোর্ড পেজ (পেমেন্ট করা ছাড়া ঢোকা যাবে না) */}
+        {/* 🚨 ড্যাশবোর্ড পেজ (পেমেন্ট ও ব্লক চেক) */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <Dashboard />
           </ProtectedRoute>
         } />
+
+        {/* 🚨 নতুন: Admin Panel (ব্লক করার জন্য) */}
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
   );
