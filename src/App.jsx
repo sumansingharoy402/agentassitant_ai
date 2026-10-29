@@ -12,15 +12,22 @@ const CUSTOMER_PASSCODES = ["CLIENT001", "CLIENT002", "PRO2024"];
 // 🚨 ৩. সিক্রেট শব্দ
 const CORRECT_SECRET_WORD = "AGENT"; 
 
-// 🚨 ৪. সিকিউরিটি গার্ড
+// 🚨 ৪. সিকিউরিটি গার্ড (এখানে Un-access চেক করা হবে)
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
+  const customerEmail = localStorage.getItem('customer_email');
   
-  if (!hasAccess) {
+  // চেক করা হচ্ছে ইমেইলটি এখনো অথোরাইজড লিস্টে আছে কিনা
+  const authorizedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
+  const isStillAuthorized = authorizedEmails.includes(customerEmail?.toLowerCase());
+
+  // যদি অ্যাক্সেস না থাকে অথবা ইমেইলটি Un-access করা হয়
+  if (!hasAccess || !isStillAuthorized) {
+    localStorage.removeItem('has_access'); // সাথে সাথে লগআউট করে দেবে
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'Arial, sans-serif' }}>
         <h2>🔒 Access Restricted</h2>
-        <p>You do not have access. Please verify your payment.</p>
+        <p>Your access has been revoked or you do not have permission.</p>
         <a href="/" style={{ color: '#3498db', fontWeight: 'bold' }}>Go to Home</a>
       </div>
     );
@@ -39,7 +46,6 @@ function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ধাপ ১: কাস্টমার ইমেইল এবং ট্রানজেকশন আইডি দেবে
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -51,7 +57,6 @@ function LandingPage() {
       return;
     }
 
-    // চেক করা হচ্ছে অ্যাডমিন আগেই এই ইমেইলটি অথোরাইজ করেছে কিনা
     const authorizedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
     if (!authorizedEmails.includes(email.toLowerCase())) {
       setError("This email is not authorized yet. Please wait for the admin to authorize it.");
@@ -62,7 +67,6 @@ function LandingPage() {
     setError('');
 
     try {
-      // আপনার Formspree-তে ইমেইল, ট্রানজেকশন আইডি পাঠানো হচ্ছে
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
@@ -74,7 +78,7 @@ function LandingPage() {
       });
       
       setLoading(false);
-      setStep(2); // পাসকোড বক্স দেখাবে
+      setStep(2); 
       
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -82,7 +86,6 @@ function LandingPage() {
     }
   };
 
-  // ধাপ ২: পাসকোড এবং সিক্রেট শব্দ ভেরিফাই
   const handleUnlock = (e) => {
     e.preventDefault();
     
@@ -115,27 +118,9 @@ function LandingPage() {
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Verify Payment</h3>
             <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter your authorized email and PayPal Transaction ID to request access.</p>
             <form onSubmit={handlePaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input 
-                type="email" 
-                placeholder="Enter your email address" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
-              />
-              <input 
-                type="text" 
-                placeholder="Enter PayPal Transaction ID" 
-                value={txnId} 
-                onChange={(e) => setTxnId(e.target.value)}
-                required
-                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
-              />
-              <button 
-                type="submit"
-                disabled={loading}
-                style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: loading ? '#95a5a6' : '#3498db', color: 'white', border: 'none', borderRadius: '5px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
-              >
+              <input type="email" placeholder="Enter your email address" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }} />
+              <input type="text" placeholder="Enter PayPal Transaction ID" value={txnId} onChange={(e) => setTxnId(e.target.value)} required style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }} />
+              <button type="submit" disabled={loading} style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: loading ? '#95a5a6' : '#3498db', color: 'white', border: 'none', borderRadius: '5px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}>
                 {loading ? "Sending Request..." : "Request Access"}
               </button>
             </form>
@@ -147,26 +132,9 @@ function LandingPage() {
               Request sent! Please contact admin to get your passcode and secret word.
             </p>
             <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input 
-                type="text" 
-                placeholder="Enter your passcode" 
-                value={passcode} 
-                onChange={(e) => setPasscode(e.target.value)}
-                required
-                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
-              />
-              <input 
-                type="text" 
-                placeholder="Enter the secret word" 
-                value={secretWord} 
-                onChange={(e) => setSecretWord(e.target.value)}
-                required
-                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
-              />
-              <button 
-                type="submit"
-                style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-              >
+              <input type="text" placeholder="Enter your passcode" value={passcode} onChange={(e) => setPasscode(e.target.value)} required style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }} />
+              <input type="text" placeholder="Enter the secret word" value={secretWord} onChange={(e) => setSecretWord(e.target.value)} required style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }} />
+              <button type="submit" style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}>
                 Unlock Access
               </button>
             </form>
@@ -183,7 +151,7 @@ function LandingPage() {
   );
 }
 
-// 🚨 ৬. আপনার সিক্রেট অ্যাডমিন প্যানেল
+// 🚨 ৬. আপনার সিক্রেট অ্যাডমিন প্যানেল (Un-access সহ)
 function SecretAdminPanel() {
   const [newEmail, setNewEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -214,10 +182,18 @@ function SecretAdminPanel() {
     }
   };
 
+  // 🚨 Un-access ফাংশন
+  const handleRemoveAccess = (emailToRemove) => {
+    const updatedList = authorizedList.filter((email) => email !== emailToRemove);
+    localStorage.setItem('authorized_emails', JSON.stringify(updatedList));
+    setAuthorizedList(updatedList);
+    setMessage(`🚫 ${emailToRemove} access has been revoked.`);
+  };
+
   return (
     <div style={{ textAlign: 'center', marginTop: '80px', fontFamily: 'Arial, sans-serif' }}>
       <h1 style={{ color: '#e74c3c' }}>🔐 Secret Admin Panel</h1>
-      <p>Enter the customer's email here to grant them access to the software.</p>
+      <p>Enter the customer's email here to grant or revoke access.</p>
       
       <form onSubmit={handleAuthorize} style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
         <input 
@@ -235,16 +211,25 @@ function SecretAdminPanel() {
         </button>
       </form>
 
-      {message && <p style={{ marginTop: '15px', fontWeight: 'bold', color: message.includes('✅') ? 'green' : '#d35400' }}>{message}</p>}
+      {message && <p style={{ marginTop: '15px', fontWeight: 'bold', color: message.includes('✅') ? 'green' : message.includes('🚫') ? 'red' : '#d35400' }}>{message}</p>}
 
-      <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#f4f7f6', display: 'inline-block', borderRadius: '10px', border: '1px solid #ddd' }}>
+      <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#f4f7f6', display: 'inline-block', borderRadius: '10px', border: '1px solid #ddd', minWidth: '400px' }}>
         <h3>Authorized Emails List:</h3>
         {authorizedList.length === 0 ? (
           <p>No emails authorized yet.</p>
         ) : (
           <ul style={{ listStyle: 'none', padding: 0 }}>
             {authorizedList.map((email, index) => (
-              <li key={index} style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>{email}</li>
+              <li key={index} style={{ padding: '12px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{email}</span>
+                {/* 🚨 Un-access বাটন */}
+                <button 
+                  onClick={() => handleRemoveAccess(email)}
+                  style={{ backgroundColor: '#c0392b', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '14px', fontWeight: 'bold' }}
+                >
+                  Un-access
+                </button>
+              </li>
             ))}
           </ul>
         )}
