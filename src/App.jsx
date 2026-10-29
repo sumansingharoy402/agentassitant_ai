@@ -50,7 +50,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ
+// 🚨 ৩. ল্যান্ডিং পেজ (I have paid বাটন সহ)
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
