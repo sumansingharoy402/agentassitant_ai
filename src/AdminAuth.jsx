@@ -11,7 +11,7 @@ export default function AdminAuth() {
     setAuthorizedList(savedEmails);
   }, []);
 
-  // নতুন ইমেইল অ্যাড করা
+  // নতুন ইমেইল অ্যাড করা (Access দেওয়া)
   const handleAuthorize = (e) => {
     e.preventDefault();
     if (!newEmail || !newEmail.includes('@')) {
@@ -32,7 +32,7 @@ export default function AdminAuth() {
     }
   };
 
-  // 🚨 নতুন ফাংশন: অ্যাক্সেস বাতিল করা (Un-access)
+  // 🚨 অ্যাক্সেস বাতিল করা (Un-access)
   const handleRemoveAccess = (emailToRemove) => {
     const updatedList = authorizedList.filter((email) => email !== emailToRemove);
     localStorage.setItem('authorized_emails', JSON.stringify(updatedList));
