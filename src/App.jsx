@@ -3,18 +3,18 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 ১. আপনার অ্যাডমিন ইমেইল (এখানে নোটিফিকেশন আসবে)
+// 🚨 ১. আপনার অ্যাডমিন ইমেইল
 const ADMIN_EMAIL = "sumansingharoy402@gmail.com";
 
-// 🚨 ২. আপনার তৈরি করা পাসকোডের তালিকা (আপনি যত ইচ্ছা পাসকোড যোগ করতে পারেন)
+// 🚨 ২. কাস্টমারদের পাসকোডের তালিকা
 const CUSTOMER_PASSCODES = [
-  "CLIENT001",    // প্রথম কাস্টমারের জন্য
-  "CLIENT002",    // দ্বিতীয় কাস্টমারের জন্য
-  "CLIENT003",    // তৃতীয় কাস্টমারের জন্য
-  "PRO2024"       // চতুর্থ কাস্টমারের জন্য
+  "CLIENT001",    
+  "CLIENT002",    
+  "CLIENT003",    
+  "PRO2024"       
 ];
 
-// 🚨 ৩. সিকিউরিটি গার্ড (পাসকোড ছাড়া কেউ ঢুকতে পারবে না)
+// 🚨 ৩. সিকিউরিটি গার্ড (লোকাল স্টোরেজ চেক)
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
   
@@ -34,12 +34,14 @@ const ProtectedRoute = ({ children }) => {
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
+  const [secretWord, setSecretWord] = useState(''); // নতুন সিকিউরিটি ফিল্ড
   
   const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [savedEmail, setSavedEmail] = useState(''); 
 
-  // ধাপ ১: কাস্টমার ইমেইল দেবে, সিস্টেম আপনার কাছে নোটিফিকেশন পাঠাবে
+  // ধাপ ১: কাস্টমার ইমেইল দেবে
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -51,6 +53,8 @@ function LandingPage() {
     setError('');
 
     try {
+      setSavedEmail(email);
+
       // আপনার Formspree-তে নোটিফিকেশন পাঠানো হচ্ছে
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
@@ -63,7 +67,7 @@ function LandingPage() {
       });
       
       setLoading(false);
-      setStep(2); // পাসকোড বক্স দেখাবে
+      setStep(2); 
       
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -71,17 +75,23 @@ function LandingPage() {
     }
   };
 
-  // ধাপ ২: পাসকোড ভেরিফাই করা
+  // ধাপ ২: পাসকোড এবং সিকিউরিটি শব্দ ভেরিফাই করা
   const handlePasscodeSubmit = (e) => {
     e.preventDefault();
     
-    // আপনার লিস্টের পাসকোডের সাথে মিলছে কিনা চেক করা
-    if (CUSTOMER_PASSCODES.includes(passcode.toUpperCase())) {
+    // এখানে চেক করা হচ্ছে:
+    // ১. ইমেইল ঠিক আছে কিনা
+    // ২. পাসকোড লিস্টে আছে কিনা
+    // ৩. সিক্রেট শব্দটি সঠিক কিনা (যা আপনি কাস্টমারকে জানাবেন)
+    
+    const CORRECT_SECRET_WORD = "AGENT"; // 🚨 আপনি এখানে আপনার পছন্দের শব্দ দিতে পারেন
+
+    if (email === savedEmail && CUSTOMER_PASSCODES.includes(passcode.toUpperCase()) && secretWord.toUpperCase() === CORRECT_SECRET_WORD) {
       localStorage.setItem('has_access', 'true');
       localStorage.setItem('customer_email', email); 
       window.location.href = '/dashboard'; 
     } else {
-      setError("Invalid passcode. Please contact the admin to get your passcode.");
+      setError("Invalid details. Please ensure your email, passcode, and secret word are correct.");
     }
   };
 
@@ -124,16 +134,32 @@ function LandingPage() {
           </>
         ) : (
           <>
-            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Passcode</h3>
+            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Credentials</h3>
             <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px', fontWeight: 'bold' }}>
-              Request sent! Please contact admin to get your passcode.
+              Request sent! Please contact admin to get your passcode and secret word.
             </p>
             <form onSubmit={handlePasscodeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
+                type="email" 
+                placeholder="Re-enter your email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
+              />
+              <input 
                 type="text" 
-                placeholder="Enter your unique passcode" 
+                placeholder="Enter your passcode" 
                 value={passcode} 
                 onChange={(e) => setPasscode(e.target.value)}
+                required
+                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
+              />
+              <input 
+                type="text" 
+                placeholder="Enter the secret word provided by admin" 
+                value={secretWord} 
+                onChange={(e) => setSecretWord(e.target.value)}
                 required
                 style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
               />
