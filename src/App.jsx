@@ -3,8 +3,13 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 পাসওয়ার্ড সেট করুন (কাস্টমারকে এটি দিতে হবে)
-const SECRET_PASSCODE = "AGENT99"; 
+// 🚨 একাধিক পাসওয়ার্ডের তালিকা (এখানে আপনি নতুন কাস্টমারের পাসওয়ার্ড যোগ করতে পারেন)
+const VALID_PASSCODES = [
+  "AGENT99",      // প্রথম কাস্টমার
+  "CLIENT01",     // দ্বিতীয় কাস্টমার
+  "CLIENT02",     // তৃতীয় কাস্টমার
+  "PRO2024"       // চতুর্থ কাস্টমার
+];
 
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
@@ -26,8 +31,10 @@ function LandingPage() {
   const [error, setError] = useState('');
 
   const handleUnlock = () => {
-    if (passcode.toUpperCase() === SECRET_PASSCODE) {
+    // 🚨 এখানে চেক করা হচ্ছে পাসওয়ার্ডটি তালিকায় আছে কিনা
+    if (VALID_PASSCODES.includes(passcode.toUpperCase())) {
       localStorage.setItem('has_access', 'true');
+      localStorage.setItem('current_passcode', passcode.toUpperCase()); // কে কোন পাসওয়ার্ড দিয়ে ঢুকেছে তা সেভ রাখা
       window.location.href = '/dashboard'; 
     } else {
       setError("Invalid passcode. Please check the email/message we sent you.");
