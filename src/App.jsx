@@ -4,12 +4,12 @@ import Admin from './Admin';
 import { createClient } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 
-// 🚨 ১. Supabase কানেকশন
+// ১. Supabase কানেকশন
 const supabaseUrl = 'https://wbhyimvwcflbnfgmlibr.supabase.co';
 const supabaseKey = 'sb_publishable_cGmtLQGIo6n--rYqElY96Q_UbyHUcpv'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 🚨 ২. Protected Route (এখানেই ব্লক চেক করা হচ্ছে)
+// ২. Protected Route (এখানেই ব্লক চেক করা হচ্ছে)
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -51,7 +51,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ (No Refund পলিসি যুক্ত করা হয়েছে)
+// ৩. ল্যান্ডিং পেজ
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -117,7 +117,7 @@ function LandingPage() {
           </div>
         )}
 
-        {/* 🚨 নতুন যোগ করা No Refund Policy */}
+        {/* No Refund Policy Notice */}
         <div style={{ marginTop: '30px', fontSize: '14px', color: '#e53e3e', fontWeight: 'bold' }}>
           <p>⚠️ No Refund Policy: All sales are final. No refunds will be provided once access is granted.</p>
         </div>
