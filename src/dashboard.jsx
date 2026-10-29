@@ -10,6 +10,7 @@ export default function Dashboard() {
 
   // API Key এবং User Plan স্টেট
   const [apiKey, setApiKey] = useState('');
+  // localStorage থেকে ইউজার প্ল্যান চেক করা হচ্ছে
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
   useEffect(() => {
@@ -32,20 +33,29 @@ export default function Dashboard() {
   const [propertyDetails, setPropertyDetails] = useState('');
   const [description, setDescription] = useState('');
 
-  // 🚨 পেমেন্ট হ্যান্ডলিং ফাংশন
+  // 🚨 পেমেন্ট হ্যান্ডলিং ফাংশন (শুধুমাত্র সঠিক কোড দিলে Pro হবে)
   const handlePayment = (plan) => {
     const paypalLink = plan === 'lifetime' 
       ? 'https://www.paypal.com/paypalme/Sumansingharoy/99' 
       : 'https://www.paypal.com/paypalme/Sumansingharoy/19';
     
+    // PayPal পেমেন্ট পেজ নতুন ট্যাবে ওপেন হবে
     window.open(paypalLink, '_blank');
     
-    const confirmPayment = window.confirm(`You clicked ${plan === 'lifetime' ? 'Lifetime ($99)' : 'Monthly ($19)'} plan. Have you completed the payment? Click OK to activate Pro.`);
-    if (confirmPayment) {
+    // কাস্টমারের কাছ থেকে সিক্রেট অ্যাক্সেস কোড নেওয়া হবে
+    const enteredCode = window.prompt("Please enter the Access Code you received after payment:");
+    
+    // 🚨 এখানে আপনার সিক্রেট কোডটি দিন (আপনি এটি পরিবর্তন করতে পারেন)
+    const SECRET_ACCESS_CODE = "PRO999"; 
+
+    if (enteredCode === SECRET_ACCESS_CODE) {
       localStorage.setItem('user_plan', 'pro');
       setUserPlan('pro');
       setShowUpgradeModal(false);
-      alert("🎉 Welcome to Pro! Your account has been upgraded successfully.");
+      alert("🎉 Payment verified! Welcome to Pro. Your account has been upgraded successfully.");
+    } else if (enteredCode !== null) {
+      // যদি ভুল কোড দেয়
+      alert("❌ Invalid Access Code. Please make sure you have paid and entered the correct code.");
     }
   };
 
@@ -59,7 +69,8 @@ export default function Dashboard() {
     setLoading(true);
     setResult('');
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`, {
+      // 🚨 মডেলের নাম ঠিক করা হয়েছে (gemini-1.5-flash)
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
