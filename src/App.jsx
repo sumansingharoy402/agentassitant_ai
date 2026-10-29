@@ -50,7 +50,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ (I have paid বাটন সহ)
+// 🚨 ৩. ল্যান্ডিং পেজ
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -65,7 +65,6 @@ function LandingPage() {
       return;
     }
     
-    // ডেটাবেসে ইমেইল সেভ করা
     const { error } = await supabase
       .from('users')
       .upsert({ email: email, is_paid: true, is_blocked: false });
@@ -74,7 +73,7 @@ function LandingPage() {
       alert("Error: " + error.message);
     } else {
       localStorage.setItem('user_email', email);
-      window.location.href = '/dashboard'; // সরাসরি ড্যাশবোর্ডে নিয়ে যাবে
+      window.location.href = '/dashboard';
     }
   };
 
