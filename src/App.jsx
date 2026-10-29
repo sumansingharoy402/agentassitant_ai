@@ -3,14 +3,7 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 একাধিক পাসওয়ার্ডের তালিকা (এখানে আপনি নতুন কাস্টমারের পাসওয়ার্ড যোগ করতে পারেন)
-const VALID_PASSCODES = [
-  "AGENT99",      // প্রথম কাস্টমার
-  "CLIENT01",     // দ্বিতীয় কাস্টমার
-  "CLIENT02",     // তৃতীয় কাস্টমার
-  "PRO2024"       // চতুর্থ কাস্টমার
-];
-
+// 🚨 ১. সিকিউরিটি গার্ড (ইমেইল সেভ থাকলে তবেই ঢুকতে পারবে)
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
   
@@ -18,7 +11,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'Arial, sans-serif' }}>
         <h2>🔒 Access Restricted</h2>
-        <p>You do not have access. Please complete your payment and enter the passcode.</p>
+        <p>You do not have access. Please complete your payment to unlock.</p>
         <a href="/" style={{ color: '#3498db', fontWeight: 'bold' }}>Go to Home</a>
       </div>
     );
@@ -26,18 +19,44 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// 🚨 ২. ল্যান্ডিং পেজ (ইমেইল দিয়ে অটো আনলক)
 function LandingPage() {
-  const [passcode, setPasscode] = useState('');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleUnlock = () => {
-    // 🚨 এখানে চেক করা হচ্ছে পাসওয়ার্ডটি তালিকায় আছে কিনা
-    if (VALID_PASSCODES.includes(passcode.toUpperCase())) {
+  const handleUnlock = async (e) => {
+    e.preventDefault();
+    if (!email || !email.includes('@')) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      // আপনার Formspree Endpoint
+      const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
+
+      // কাস্টমারের ইমেইলটি আপনার Formspree-তে পাঠানো হচ্ছে
+      await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            email: email, 
+            message: "New customer unlocked AgentAssist AI." 
+        })
+      });
+
+      // সফলভাবে পাঠানোর পর কাস্টমারকে অ্যাক্সেস দেওয়া হচ্ছে
       localStorage.setItem('has_access', 'true');
-      localStorage.setItem('current_passcode', passcode.toUpperCase()); // কে কোন পাসওয়ার্ড দিয়ে ঢুকেছে তা সেভ রাখা
+      localStorage.setItem('customer_email', email); // কাস্টমারের ইমেইল সেভ হলো
       window.location.href = '/dashboard'; 
-    } else {
-      setError("Invalid passcode. Please check the email/message we sent you.");
+      
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -54,22 +73,27 @@ function LandingPage() {
         </button>
       </a>
 
-      <div style={{ marginTop: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '10px', display: 'inline-block', backgroundColor: '#f9f9f9' }}>
-        <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Already Paid?</h3>
-        <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter the Secret Passcode sent to you after payment.</p>
-        <input 
-          type="text" 
-          placeholder="Enter Passcode" 
-          value={passcode} 
-          onChange={(e) => setPasscode(e.target.value)}
-          style={{ padding: '10px', fontSize: '16px', width: '250px', marginRight: '10px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
-        />
-        <button 
-          onClick={handleUnlock}
-          style={{ padding: '10px 20px', fontSize: '1rem', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-        >
-          Unlock Access
-        </button>
+      <div style={{ marginTop: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '10px', display: 'inline-block', backgroundColor: '#f9f9f9', maxWidth: '400px', width: '100%' }}>
+        <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Unlock Access</h3>
+        <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter the email address you used for PayPal to unlock your software instantly.</p>
+        
+        <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <input 
+            type="email" 
+            placeholder="Enter your PayPal email" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
+          />
+          <button 
+            type="submit"
+            disabled={loading}
+            style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: loading ? '#95a5a6' : '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+          >
+            {loading ? "Verifying & Unlocking..." : "Unlock Access Now"}
+          </button>
+        </form>
         {error && <p style={{ color: 'red', marginTop: '10px', fontSize: '14px' }}>{error}</p>}
       </div>
 
