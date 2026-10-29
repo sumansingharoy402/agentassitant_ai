@@ -8,9 +8,7 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // API Key এবং User Plan স্টেট
   const [apiKey, setApiKey] = useState('');
-  // localStorage থেকে ইউজার প্ল্যান চেক করা হচ্ছে
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
   useEffect(() => {
@@ -18,48 +16,39 @@ export default function Dashboard() {
     if (savedKey) setApiKey(savedKey);
   }, [activeTab]);
 
-  // States for Email
   const [clientName, setClientName] = useState('');
   const [propertyAddress, setPropertyAddress] = useState('');
   const [tone, setTone] = useState('Professional');
   const [emailTemplate, setEmailTemplate] = useState('Follow-up');
   const [email, setEmail] = useState('');
 
-  // States for Review
   const [reviewText, setReviewText] = useState('');
   const [reviewReply, setReviewReply] = useState('');
 
-  // States for Description
   const [propertyDetails, setPropertyDetails] = useState('');
   const [description, setDescription] = useState('');
 
-  // 🚨 পেমেন্ট হ্যান্ডলিং ফাংশন (শুধুমাত্র সঠিক কোড দিলে Pro হবে)
+  // 🚨 পেমেন্ট হ্যান্ডলিং (প্রম্পট দিয়ে সিকিউর করা)
   const handlePayment = (plan) => {
     const paypalLink = plan === 'lifetime' 
       ? 'https://www.paypal.com/paypalme/Sumansingharoy/99' 
       : 'https://www.paypal.com/paypalme/Sumansingharoy/19';
     
-    // PayPal পেমেন্ট পেজ নতুন ট্যাবে ওপেন হবে
     window.open(paypalLink, '_blank');
     
-    // কাস্টমারের কাছ থেকে সিক্রেট অ্যাক্সেস কোড নেওয়া হবে
     const enteredCode = window.prompt("Please enter the Access Code you received after payment:");
-    
-    // 🚨 এখানে আপনার সিক্রেট কোডটি দিন (আপনি এটি পরিবর্তন করতে পারেন)
-    const SECRET_ACCESS_CODE = "PRO999"; 
+    const SECRET_ACCESS_CODE = "PRO999"; // 🚨 আপনার সিক্রেট কোড
 
-    if (enteredCode === SECRET_ACCESS_CODE) {
+    if (enteredCode && enteredCode.toUpperCase() === SECRET_ACCESS_CODE) {
       localStorage.setItem('user_plan', 'pro');
       setUserPlan('pro');
       setShowUpgradeModal(false);
-      alert("🎉 Payment verified! Welcome to Pro. Your account has been upgraded successfully.");
+      alert("🎉 Payment verified! Welcome to Pro.");
     } else if (enteredCode !== null) {
-      // যদি ভুল কোড দেয়
       alert("❌ Invalid Access Code. Please make sure you have paid and entered the correct code.");
     }
   };
 
-  // Gemini API Call
   const callGeminiAPI = async (prompt, setResult) => {
     if (!apiKey) {
       setResult("Error: Please go to Settings and enter your Gemini API Key first.");
@@ -69,7 +58,6 @@ export default function Dashboard() {
     setLoading(true);
     setResult('');
     try {
-      // 🚨 মডেলের নাম ঠিক করা হয়েছে (gemini-1.5-flash)
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
@@ -136,7 +124,6 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Segoe UI, Arial, sans-serif', backgroundColor: theme.bg }}>
-      {/* Sidebar */}
       <div style={{ width: '260px', backgroundColor: theme.sidebar, color: 'white', padding: '20px' }}>
         <h2 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>🤖 AgentAssist AI</h2>
         <ul style={{ listStyle: 'none', padding: 0, marginTop: '30px' }}>
@@ -147,9 +134,7 @@ export default function Dashboard() {
         </ul>
       </div>
 
-      {/* Main Area */}
       <div style={{ flex: 1 }}>
-        {/* Top Navigation Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 30px', borderBottom: `1px solid ${theme.border}`, backgroundColor: theme.bg }}>
           <div style={{ fontSize: '20px', fontWeight: 'bold', color: theme.text }}>Dashboard Overview</div>
           
@@ -178,7 +163,6 @@ export default function Dashboard() {
         </div>
 
         <div style={{ padding: '30px' }}>
-          {/* Stats Cards */}
           <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
             <div style={{ flex: 1, backgroundColor: theme.cardBg, padding: '20px', borderRadius: '10px', border: `1px solid ${theme.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
               <h4 style={{ margin: 0, color: theme.text, fontSize: '14px', opacity: 0.7 }}>Total Emails Generated</h4>
@@ -194,10 +178,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Settings পেজ */}
           {activeTab === 'settings' && <Settings />}
 
-          {/* Email Tab */}
           {activeTab === 'email' && (
             <div>
               <h2 style={{ color: theme.text }}>✉️ AI Email Generator</h2>
@@ -234,7 +216,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Review Tab */}
           {activeTab === 'review' && (
             <div>
               <h2 style={{ color: theme.text }}>⭐ Google Review Replier</h2>
@@ -258,7 +239,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Description Tab */}
           {activeTab === 'description' && (
             <div>
               <h2 style={{ color: theme.text }}>🏠 Property Description Writer</h2>
@@ -284,7 +264,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 🚨 Upgrade Modal */}
       {showUpgradeModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
           <div style={{ backgroundColor: theme.modalBg, padding: '40px', borderRadius: '15px', width: '450px', position: 'relative', textAlign: 'center' }}>
@@ -293,7 +272,6 @@ export default function Dashboard() {
             <h1 style={{ color: theme.text, margin: '0 0 10px 0', fontSize: '28px' }}>Upgrade to Pro 🚀</h1>
             <p style={{ color: theme.text, marginBottom: '30px', opacity: 0.8 }}>Unlock unlimited AI generations and premium features.</p>
             
-            {/* Lifetime Plan */}
             <div style={{ border: '2px solid #3498db', borderRadius: '12px', padding: '20px', marginBottom: '20px', backgroundColor: darkMode ? '#111827' : '#f0f8ff', position: 'relative' }}>
               <span style={{ position: 'absolute', top: '-12px', right: '20px', backgroundColor: '#e67e22', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>BEST VALUE</span>
               <h3 style={{ color: theme.text, margin: '0 0 5px 0' }}>Lifetime Deal</h3>
@@ -307,7 +285,6 @@ export default function Dashboard() {
               </button>
             </div>
 
-            {/* Monthly Plan */}
             <div style={{ border: `1px solid ${theme.border}`, borderRadius: '12px', padding: '20px', position: 'relative', zIndex: 10 }}>
               <h3 style={{ color: theme.text, margin: '0 0 5px 0' }}>Monthly</h3>
               <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#e67e22', margin: '0' }}>$19/mo</p>
