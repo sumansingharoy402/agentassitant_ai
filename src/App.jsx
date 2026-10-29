@@ -3,15 +3,17 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 ১. আপনার অ্যাডমিন ইমেইল এবং পাসকোড
+// 🚨 ১. আপনার অ্যাডমিন ইমেইল
 const ADMIN_EMAIL = "sumansingharoy402@gmail.com";
+
+// 🚨 ২. কাস্টমারদের পাসকোড লিস্ট (এখানে নতুন কাস্টমারের পাসকোড যোগ করবেন)
 const VALID_PASSCODES = [
-  "AGENT99",      // প্রথম কাস্টমারের জন্য
-  "CLIENT01",     // দ্বিতীয় কাস্টমারের জন্য
-  "CLIENT02"      // তৃতীয় কাস্টমারের জন্য
+  "AGENT99",      // প্রথম কাস্টমার
+  "CLIENT01",     // দ্বিতীয় কাস্টমার
+  "CLIENT02"      // তৃতীয় কাস্টমার
 ];
 
-// 🚨 ২. সিকিউরিটি গার্ড
+// 🚨 ৩. সিকিউরিটি গার্ড
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
   
@@ -27,7 +29,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ
+// 🚨 ৪. ল্যান্ডিং পেজ
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
@@ -44,14 +46,14 @@ function LandingPage() {
       return;
     }
 
-    // 🚨 যদি অ্যাডমিন ইমেইল দেয়, তবে সরাসরি ঢুকে যাবে
+    // 🚨 আপনার ইমেইল হলে সরাসরি ড্যাশবোর্ডে ঢুকে যাবে
     if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
       localStorage.setItem('has_access', 'true');
       window.location.href = '/dashboard';
       return;
     }
 
-    // কাস্টমার হলে Formspree-তে ইমেইল পাঠাবে
+    // কাস্টমার হলে Formspree-তে ইমেইল পাঠাবে (আপনি নোটিফিকেশন পাবেন)
     setLoading(true);
     setError('');
     try {
@@ -62,7 +64,7 @@ function LandingPage() {
         body: JSON.stringify({ email: email, message: "Customer is waiting for passcode." })
       });
       setLoading(false);
-      setStep(2); // কাস্টমারের জন্য পাসকোড বক্স দেখাবে
+      setStep(2); // পাসকোড বক্স দেখাবে
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setLoading(false);
@@ -77,7 +79,7 @@ function LandingPage() {
       localStorage.setItem('customer_email', email); 
       window.location.href = '/dashboard'; 
     } else {
-      setError("Invalid passcode. Please contact the admin.");
+      setError("Invalid passcode. Please contact the admin for your unique code.");
     }
   };
 
