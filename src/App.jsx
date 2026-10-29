@@ -9,7 +9,7 @@ const supabaseUrl = 'https://wbhyimvwcflbnfgmlibr.supabase.co';
 const supabaseKey = 'sb_publishable_cGmtLQGIo6n--rYqElY96Q_UbyHUcpv'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 🚨 ২. Protected Route
+// 🚨 ২. Protected Route (এখানেই ব্লক চেক করা হচ্ছে)
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -28,6 +28,7 @@ const ProtectedRoute = ({ children }) => {
         .eq('email', userEmail)
         .single();
 
+      // যদি ইউজার পেইড হয় এবং ব্লকড না থাকে, তবেই ড্যাশবোর্ডে ঢুকতে পারবে
       if (data && data.is_paid && !data.is_blocked) {
         setHasAccess(true);
       }
@@ -42,7 +43,7 @@ const ProtectedRoute = ({ children }) => {
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'Arial, sans-serif' }}>
         <h2>🚫 Access Denied</h2>
-        <p>Please complete the payment or enter your email to activate access.</p>
+        <p>Your access is blocked or payment is not completed.</p>
         <a href="/" style={{ color: '#3498db' }}>Go to Home</a>
       </div>
     );
@@ -50,7 +51,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ (I have paid বাটন সহ)
+// 🚨 ৩. ল্যান্ডিং পেজ (No Refund পলিসি যুক্ত করা হয়েছে)
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -115,6 +116,12 @@ function LandingPage() {
             </button>
           </div>
         )}
+
+        {/* 🚨 নতুন যোগ করা No Refund Policy */}
+        <div style={{ marginTop: '30px', fontSize: '14px', color: '#e53e3e', fontWeight: 'bold' }}>
+          <p>⚠️ No Refund Policy: All sales are final. No refunds will be provided once access is granted.</p>
+        </div>
+
       </div>
     </div>
   );
