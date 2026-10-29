@@ -4,12 +4,10 @@ import Admin from './Admin';
 import { createClient } from '@supabase/supabase-js';
 import { useState, useEffect } from 'react';
 
-// 🚨 ১. Supabase কানেকশন
 const supabaseUrl = 'https://wbhyimvwcflbnfgmlibr.supabase.co';
 const supabaseKey = 'sb_publishable_cGmtLQGIo6n--rYqElY96Q_UbyHUcpv'; 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// 🚨 ২. Protected Route
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
@@ -21,7 +19,6 @@ const ProtectedRoute = ({ children }) => {
         setLoading(false);
         return;
       }
-
       const { data } = await supabase
         .from('users')
         .select('is_paid, is_blocked')
@@ -50,7 +47,6 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৩. ল্যান্ডিং পেজ (I have paid বাটন সহ)
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [showEmailInput, setShowEmailInput] = useState(false);
@@ -64,7 +60,6 @@ function LandingPage() {
       alert("Please enter your email.");
       return;
     }
-    
     const { error } = await supabase
       .from('users')
       .upsert({ email: email, is_paid: true, is_blocked: false });
