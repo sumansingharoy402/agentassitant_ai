@@ -31,6 +31,7 @@ const ProtectedRoute = ({ children }) => {
 // 🚨 ৫. ল্যান্ডিং পেজ (কাস্টমারের জন্য)
 function LandingPage() {
   const [email, setEmail] = useState('');
+  const [txnId, setTxnId] = useState('');
   const [passcode, setPasscode] = useState('');
   const [secretWord, setSecretWord] = useState('');
   
@@ -38,11 +39,22 @@ function LandingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // ধাপ ১: কাস্টমার ইমেইল দেবে
-  const handleEmailSubmit = async (e) => {
+  // ধাপ ১: কাস্টমার ইমেইল এবং ট্রানজেকশন আইডি দেবে
+  const handlePaymentSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
       setError("Please enter a valid email address.");
+      return;
+    }
+    if (!txnId || txnId.length < 5) {
+      setError("Please enter the PayPal Transaction ID you received after payment.");
+      return;
+    }
+
+    // চেক করা হচ্ছে অ্যাডমিন আগেই এই ইমেইলটি অথোরাইজ করেছে কিনা
+    const authorizedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
+    if (!authorizedEmails.includes(email.toLowerCase())) {
+      setError("This email is not authorized yet. Please wait for the admin to authorize it.");
       return;
     }
 
@@ -50,18 +62,19 @@ function LandingPage() {
     setError('');
 
     try {
+      // আপনার Formspree-তে ইমেইল, ট্রানজেকশন আইডি পাঠানো হচ্ছে
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
             email: ADMIN_EMAIL,
-            message: `New customer is waiting for passcode. Customer Email: ${email}` 
+            message: `Payment received! Customer Email: ${email}, PayPal TXN ID: ${txnId}` 
         })
       });
       
       setLoading(false);
-      setStep(2); 
+      setStep(2); // পাসকোড বক্স দেখাবে
       
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -73,15 +86,6 @@ function LandingPage() {
   const handleUnlock = (e) => {
     e.preventDefault();
     
-    // লোকাল স্টোরেজ থেকে অথোরাইজ করা ইমেইলগুলো চেক করা
-    const authorizedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
-    const isAuthorized = authorizedEmails.includes(email.toLowerCase());
-
-    if (!isAuthorized) {
-      setError("This email has not been authorized by the admin yet. Please wait.");
-      return;
-    }
-
     if (CUSTOMER_PASSCODES.includes(passcode.toUpperCase()) && secretWord.toUpperCase() === CORRECT_SECRET_WORD) {
       localStorage.setItem('has_access', 'true');
       localStorage.setItem('customer_email', email); 
@@ -108,14 +112,22 @@ function LandingPage() {
         
         {step === 1 ? (
           <>
-            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Verify Email</h3>
-            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter your email to request access after payment.</p>
-            <form onSubmit={handleEmailSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Verify Payment</h3>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter your authorized email and PayPal Transaction ID to request access.</p>
+            <form onSubmit={handlePaymentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
                 type="email" 
                 placeholder="Enter your email address" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
+              />
+              <input 
+                type="text" 
+                placeholder="Enter PayPal Transaction ID" 
+                value={txnId} 
+                onChange={(e) => setTxnId(e.target.value)}
                 required
                 style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
               />
@@ -132,7 +144,7 @@ function LandingPage() {
           <>
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Credentials</h3>
             <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px', fontWeight: 'bold' }}>
-              Request sent! Contact admin for your passcode & secret word.
+              Request sent! Please contact admin to get your passcode and secret word.
             </p>
             <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
@@ -171,14 +183,13 @@ function LandingPage() {
   );
 }
 
-// 🚨 ৬. আপনার সিক্রেট অ্যাডমিন পেজ (যেখানে আপনি ইমেইল অ্যাড করবেন)
+// 🚨 ৬. আপনার সিক্রেট অ্যাডমিন প্যানেল
 function SecretAdminPanel() {
   const [newEmail, setNewEmail] = useState('');
   const [message, setMessage] = useState('');
   const [authorizedList, setAuthorizedList] = useState([]);
 
   useEffect(() => {
-    // পেজ লোড হলে বর্তমান লিস্ট দেখাবে
     const savedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
     setAuthorizedList(savedEmails);
   }, []);
@@ -247,7 +258,6 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        {/* 🚨 আপনার সিক্রেট অ্যাডমিন লিংক (এখানে গিয়ে ইমেইল অ্যাড করবেন) */}
         <Route path="/my-secret-admin" element={<SecretAdminPanel />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
