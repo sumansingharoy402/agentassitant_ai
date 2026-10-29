@@ -3,17 +3,7 @@ import Dashboard from './dashboard';
 import Admin from './Admin';
 import { useState } from 'react';
 
-// 🚨 ১. আপনার অ্যাডমিন ইমেইল
-const ADMIN_EMAIL = "sumansingharoy402@gmail.com";
-
-// 🚨 ২. কাস্টমারদের পাসকোড লিস্ট (এখানে নতুন কাস্টমারের পাসকোড যোগ করবেন)
-const VALID_PASSCODES = [
-  "AGENT99",      // প্রথম কাস্টমার
-  "CLIENT01",     // দ্বিতীয় কাস্টমার
-  "CLIENT02"      // তৃতীয় কাস্টমার
-];
-
-// 🚨 ৩. সিকিউরিটি গার্ড
+// 🚨 ১. সিকিউরিটি গার্ড
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
   
@@ -29,7 +19,7 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// 🚨 ৪. ল্যান্ডিং পেজ
+// 🚨 ২. ল্যান্ডিং পেজ
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
@@ -37,8 +27,9 @@ function LandingPage() {
   const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [generatedPasscode, setGeneratedPasscode] = useState('');
 
-  // প্রথম ধাপ: ইমেইল সাবমিট
+  // প্রথম ধাপ: ইমেইল সাবমিট করা এবং ইউনিক পাসকোড তৈরি করা
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
@@ -46,40 +37,46 @@ function LandingPage() {
       return;
     }
 
-    // 🚨 আপনার ইমেইল হলে সরাসরি ড্যাশবোর্ডে ঢুকে যাবে
-    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-      localStorage.setItem('has_access', 'true');
-      window.location.href = '/dashboard';
-      return;
-    }
-
-    // কাস্টমার হলে Formspree-তে ইমেইল পাঠাবে (আপনি নোটিফিকেশন পাবেন)
     setLoading(true);
     setError('');
+
     try {
+      // কাস্টমারের ইমেইলের জন্য একটি ইউনিক পাসকোড তৈরি করা
+      const randomString = Math.random().toString(36).substring(2, 6).toUpperCase();
+      const autoPasscode = `AGENT-${randomString}`;
+      setGeneratedPasscode(autoPasscode); 
+
+      // আপনার Formspree-তে ইমেইল এবং পাসকোড পাঠানো হচ্ছে
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, message: "Customer is waiting for passcode." })
+        body: JSON.stringify({ 
+            email: email, 
+            message: `New customer payment. Email: ${email}. Auto-generated Passcode: ${autoPasscode}` 
+        })
       });
+      
       setLoading(false);
       setStep(2); // পাসকোড বক্স দেখাবে
+      
     } catch (err) {
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
 
-  // দ্বিতীয় ধাপ: পাসকোড ভেরিফাই
+  // দ্বিতীয় ধাপ: পাসকোড ভেরিফাই করা
   const handlePasscodeSubmit = (e) => {
     e.preventDefault();
-    if (VALID_PASSCODES.includes(passcode.toUpperCase())) {
+    
+    // কাস্টমার যে পাসকোডটি লিখেছে এবং আমরা যে পাসকোডটি তৈরি করেছি, তা মিলিয়ে দেখা
+    if (passcode.toUpperCase() === generatedPasscode) {
       localStorage.setItem('has_access', 'true');
       localStorage.setItem('customer_email', email); 
       window.location.href = '/dashboard'; 
     } else {
-      setError("Invalid passcode. Please contact the admin for your unique code.");
+      setError("Invalid passcode. Please check the passcode you received.");
     }
   };
 
@@ -124,7 +121,7 @@ function LandingPage() {
           <>
             <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Passcode</h3>
             <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px', fontWeight: 'bold' }}>
-              Email submitted! Please contact admin to get your passcode.
+              Email submitted! Check your inbox for your unique passcode.
             </p>
             <form onSubmit={handlePasscodeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <input 
