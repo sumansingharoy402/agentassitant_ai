@@ -1,21 +1,26 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './dashboard';
 import Admin from './Admin';
-import AdminAuth from './AdminAuth'; // নতুন তৈরি করা ফাইল
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
+// 🚨 ১. আপনার অ্যাডমিন ইমেইল
 const ADMIN_EMAIL = "sumansingharoy402@gmail.com";
-const CUSTOMER_PASSCODES = ["CLIENT001", "CLIENT002", "PRO2024"];
-const CORRECT_SECRET_WORD = "AGENT";
 
-// 🚨 সিকিউরিটি গার্ড
+// 🚨 ২. কাস্টমারদের পাসকোডের তালিকা
+const CUSTOMER_PASSCODES = ["CLIENT001", "CLIENT002", "PRO2024"];
+
+// 🚨 ৩. সিক্রেট শব্দ
+const CORRECT_SECRET_WORD = "AGENT"; 
+
+// 🚨 ৪. সিকিউরিটি গার্ড
 const ProtectedRoute = ({ children }) => {
   const hasAccess = localStorage.getItem('has_access') === 'true';
+  
   if (!hasAccess) {
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'Arial, sans-serif' }}>
         <h2>🔒 Access Restricted</h2>
-        <p>You do not have access.</p>
+        <p>You do not have access. Please verify your payment.</p>
         <a href="/" style={{ color: '#3498db', fontWeight: 'bold' }}>Go to Home</a>
       </div>
     );
@@ -23,18 +28,21 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// 🚨 ৫. ল্যান্ডিং পেজ (কাস্টমারের জন্য)
 function LandingPage() {
   const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [secretWord, setSecretWord] = useState('');
-  const [step, setStep] = useState(1);
-  const [error, setError] = useState('');
+  
+  const [step, setStep] = useState(1); 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  // ধাপ ১: কাস্টমার ইমেইল দেবে
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) {
-      setError("Please enter a valid email.");
+      setError("Please enter a valid email address.");
       return;
     }
 
@@ -42,30 +50,35 @@ function LandingPage() {
     setError('');
 
     try {
-      // আপনার কাছে নোটিফিকেশন পাঠানো
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/mljjlarz"; 
       await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: ADMIN_EMAIL, message: `New access request from: ${email}` })
+        body: JSON.stringify({ 
+            email: ADMIN_EMAIL,
+            message: `New customer is waiting for passcode. Customer Email: ${email}` 
+        })
       });
+      
       setLoading(false);
       setStep(2); 
+      
     } catch (err) {
-      setError("Error sending request. Please try again.");
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
 
-  const handlePasscodeSubmit = (e) => {
+  // ধাপ ২: পাসকোড এবং সিক্রেট শব্দ ভেরিফাই
+  const handleUnlock = (e) => {
     e.preventDefault();
     
-    // 🚨 নতুন লজিক: ইমেইলটি আপনার অ্যাডমিন প্যানেলে অথোরাইজ করা আছে কিনা চেক করা
+    // লোকাল স্টোরেজ থেকে অথোরাইজ করা ইমেইলগুলো চেক করা
     const authorizedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
-    const isEmailAuthorized = authorizedEmails.includes(email.toLowerCase());
+    const isAuthorized = authorizedEmails.includes(email.toLowerCase());
 
-    if (!isEmailAuthorized) {
-      setError("This email is not authorized. Please contact admin.");
+    if (!isAuthorized) {
+      setError("This email has not been authorized by the admin yet. Please wait.");
       return;
     }
 
@@ -80,8 +93,10 @@ function LandingPage() {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '80px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Automate Your Client Follow-ups</h1>
-      <p>Save hours every week with AI-powered emails.</p>
+      <h1 style={{ fontSize: '2.5rem', color: '#333' }}>Automate Your Client Follow-ups</h1>
+      <p style={{ fontSize: '1.2rem', color: '#666', marginBottom: '30px' }}>
+        Save hours every week with AI-powered emails.
+      </p>
       
       <a href="https://www.paypal.com/paypalme/Sumansingharoy/99" target="_blank" rel="noreferrer">
         <button style={{ padding: '12px 24px', fontSize: '1rem', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginBottom: '20px' }}>
@@ -90,30 +105,138 @@ function LandingPage() {
       </a>
 
       <div style={{ marginTop: '20px', padding: '20px', border: '1px solid #ddd', borderRadius: '10px', display: 'inline-block', backgroundColor: '#f9f9f9', maxWidth: '450px', width: '100%' }}>
+        
         {step === 1 ? (
           <>
-            <h3>Step 2: Verify Email</h3>
-            <p style={{ fontSize: '14px', marginBottom: '15px' }}>Enter your email to request access.</p>
+            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 2: Verify Email</h3>
+            <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>Enter your email to request access after payment.</p>
             <form onSubmit={handleEmailSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input type="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', textAlign: 'center', borderRadius: '5px', border: '1px solid #ccc' }} />
-              <button type="submit" disabled={loading} style={{ padding: '12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>
-                {loading ? "Sending..." : "Request Access"}
+              <input 
+                type="email" 
+                placeholder="Enter your email address" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
+              />
+              <button 
+                type="submit"
+                disabled={loading}
+                style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: loading ? '#95a5a6' : '#3498db', color: 'white', border: 'none', borderRadius: '5px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}
+              >
+                {loading ? "Sending Request..." : "Request Access"}
               </button>
             </form>
           </>
         ) : (
           <>
-            <h3>Step 3: Enter Credentials</h3>
-            <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px' }}>Contact admin for passcode & secret word.</p>
-            <form onSubmit={handlePasscodeSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <input type="email" placeholder="Re-enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', textAlign: 'center', borderRadius: '5px', border: '1px solid #ccc' }} />
-              <input type="text" placeholder="Enter passcode" value={passcode} onChange={(e) => setPasscode(e.target.value)} required style={{ padding: '12px', textAlign: 'center', borderRadius: '5px', border: '1px solid #ccc', textTransform: 'uppercase' }} />
-              <input type="text" placeholder="Enter secret word" value={secretWord} onChange={(e) => setSecretWord(e.target.value)} required style={{ padding: '12px', textAlign: 'center', borderRadius: '5px', border: '1px solid #ccc', textTransform: 'uppercase' }} />
-              <button type="submit" style={{ padding: '12px', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer' }}>Unlock Access</button>
+            <h3 style={{ margin: '0 0 10px 0', color: '#333' }}>Step 3: Enter Credentials</h3>
+            <p style={{ fontSize: '14px', color: '#27ae60', marginBottom: '15px', fontWeight: 'bold' }}>
+              Request sent! Contact admin for your passcode & secret word.
+            </p>
+            <form onSubmit={handleUnlock} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <input 
+                type="text" 
+                placeholder="Enter your passcode" 
+                value={passcode} 
+                onChange={(e) => setPasscode(e.target.value)}
+                required
+                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
+              />
+              <input 
+                type="text" 
+                placeholder="Enter the secret word" 
+                value={secretWord} 
+                onChange={(e) => setSecretWord(e.target.value)}
+                required
+                style={{ padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center', textTransform: 'uppercase' }}
+              />
+              <button 
+                type="submit"
+                style={{ padding: '12px 20px', fontSize: '1rem', backgroundColor: '#27ae60', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                Unlock Access
+              </button>
             </form>
           </>
         )}
+        
         {error && <p style={{ color: 'red', marginTop: '10px', fontSize: '14px' }}>{error}</p>}
+      </div>
+
+      <div style={{ marginTop: '40px', fontSize: '14px', color: '#e53e3e', fontWeight: 'bold' }}>
+        <p>⚠️ No Refund Policy: All sales are final. No refunds will be provided once access is granted.</p>
+      </div>
+    </div>
+  );
+}
+
+// 🚨 ৬. আপনার সিক্রেট অ্যাডমিন পেজ (যেখানে আপনি ইমেইল অ্যাড করবেন)
+function SecretAdminPanel() {
+  const [newEmail, setNewEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [authorizedList, setAuthorizedList] = useState([]);
+
+  useEffect(() => {
+    // পেজ লোড হলে বর্তমান লিস্ট দেখাবে
+    const savedEmails = JSON.parse(localStorage.getItem('authorized_emails') || '[]');
+    setAuthorizedList(savedEmails);
+  }, []);
+
+  const handleAuthorize = (e) => {
+    e.preventDefault();
+    if (!newEmail || !newEmail.includes('@')) {
+      setMessage('Please enter a valid email.');
+      return;
+    }
+
+    const emailToAdd = newEmail.toLowerCase();
+    
+    if (!authorizedList.includes(emailToAdd)) {
+      const updatedList = [...authorizedList, emailToAdd];
+      localStorage.setItem('authorized_emails', JSON.stringify(updatedList));
+      setAuthorizedList(updatedList);
+      setMessage(`✅ ${emailToAdd} has been authorized successfully.`);
+      setNewEmail('');
+    } else {
+      setMessage(`⚠️ ${emailToAdd} is already authorized.`);
+    }
+  };
+
+  return (
+    <div style={{ textAlign: 'center', marginTop: '80px', fontFamily: 'Arial, sans-serif' }}>
+      <h1 style={{ color: '#e74c3c' }}>🔐 Secret Admin Panel</h1>
+      <p>Enter the customer's email here to grant them access to the software.</p>
+      
+      <form onSubmit={handleAuthorize} style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+        <input 
+          type="email" 
+          placeholder="Customer Email (e.g., client@gmail.com)" 
+          value={newEmail} 
+          onChange={(e) => setNewEmail(e.target.value)}
+          style={{ padding: '12px', fontSize: '16px', width: '300px', border: '1px solid #ccc', borderRadius: '5px', textAlign: 'center' }}
+        />
+        <button 
+          type="submit"
+          style={{ padding: '12px 24px', fontSize: '16px', backgroundColor: '#e74c3c', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          Authorize Email
+        </button>
+      </form>
+
+      {message && <p style={{ marginTop: '15px', fontWeight: 'bold', color: message.includes('✅') ? 'green' : '#d35400' }}>{message}</p>}
+
+      <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#f4f7f6', display: 'inline-block', borderRadius: '10px', border: '1px solid #ddd' }}>
+        <h3>Authorized Emails List:</h3>
+        {authorizedList.length === 0 ? (
+          <p>No emails authorized yet.</p>
+        ) : (
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            {authorizedList.map((email, index) => (
+              <li key={index} style={{ padding: '8px', borderBottom: '1px solid #ddd' }}>{email}</li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
@@ -124,9 +247,13 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        {/* 🚨 নতুন অ্যাডমিন অথোরাইজেশন পেজ */}
-        <Route path="/admin-auth" element={<AdminAuth />} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        {/* 🚨 আপনার সিক্রেট অ্যাডমিন লিংক (এখানে গিয়ে ইমেইল অ্যাড করবেন) */}
+        <Route path="/my-secret-admin" element={<SecretAdminPanel />} />
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
         <Route path="/admin" element={<Admin />} />
       </Routes>
     </Router>
