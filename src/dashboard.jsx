@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('email');
@@ -7,8 +7,8 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // 🚨 API Key Environment Variable থেকে আসবে
-  const GLOBAL_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
+  // 🚨 API Key Environment Variable থেকে আসবে (AQ. Key)
+  const GLOBAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
@@ -55,26 +55,22 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 OpenRouter API এন্ডপয়েন্ট
-      const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
+      // 🚨 AQ. Key-এর জন্য সঠিক এন্ডপয়েন্ট
+      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/projects/-/locations/global/publishers/google/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GLOBAL_API_KEY}`,
-            'HTTP-Referer': 'https://agentassistant-ai.vercel.app',
-            'X-Title': 'AgentAssist AI'
+            'x-goog-api-key': GLOBAL_API_KEY  // 🚨 AQ. Key-এর জন্য x-goog-api-key
         },
         body: JSON.stringify({
-          model: "openrouter/free", // 🚨 রাউটার: স্বয়ংক্রিয়ভাবে ফ্রি মডেল বেছে নেবে
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 500
+          contents: [{ parts: [{ text: prompt }] }]
         })
-      }); // 🚨 এখানে fetch বন্ধ করার ব্র্যাকেট ও সেমিকোলন ঠিক করা হয়েছে
-
+      });
+      
       const data = await response.json();
       
-      if (data.choices && data.choices[0]?.message?.content) {
-        setResult(data.choices[0].message.content);
+      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+        setResult(data.candidates[0].content.parts[0].text);
       } else {
         setResult("Error: " + (data.error?.message || "Could not generate response."));
       }
