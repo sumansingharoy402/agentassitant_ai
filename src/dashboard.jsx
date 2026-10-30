@@ -8,7 +8,7 @@ export default function Dashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // 🚨 API Key Environment Variable থেকে আসবে (OpenRouter Key)
-  const GLOBAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+  const GLOBAL_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
