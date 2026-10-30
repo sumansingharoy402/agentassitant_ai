@@ -7,7 +7,7 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // 🚨 আপনার নতুন API Key (AQ. ফরম্যাট)
+  // 🚨 আপনার নতুন API Key (AQ. ফরম্যাট - Express Mode)
   const GLOBAL_API_KEY = "AQ.Ab8RN6J8" + "MYSQMg0OLQabRud" + "TqmSZ-Fpvbx-DMAK9FPf33MKJQ";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
@@ -55,12 +55,12 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 aiplatform এন্ডপয়েন্ট এবং Bearer হেডার (AQ. Key-এর জন্য)
-      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/publishers/google/models/gemini-2.5-flash:generateContent`, {
+      // 🚨 Express Mode কী-এর জন্য সঠিক এন্ডপয়েন্ট এবং x-goog-api-key হেডার
+      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/projects/-/locations/global/publishers/google/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${GLOBAL_API_KEY}` 
+            'x-goog-api-key': GLOBAL_API_KEY  // 🚨 Bearer এর বদলে x-goog-api-key
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }]
