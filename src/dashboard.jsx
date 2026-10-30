@@ -55,7 +55,7 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 OpenRouter API এন্ডপয়েন্ট - Fallback Models
+      // 🚨 OpenRouter API এন্ডপয়েন্ট
       const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
         method: 'POST',
         headers: { 
@@ -65,17 +65,12 @@ export default function Dashboard() {
             'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          // 🚨 Fallback Models: প্রথমটি ফেইল করলে পরেরটি চেষ্টা করবে
-          models: [
-            "google/gemma-4-26b-a4b-it:free",
-            "nvidia/nemotron-3-ultra-550b-a55b:free",
-            "cohere/north-mini-code:free"
-          ],
+          model: "openrouter/free", // 🚨 রাউটার: স্বয়ংক্রিয়ভাবে ফ্রি মডেল বেছে নেবে
           messages: [{ role: "user", content: prompt }],
           max_tokens: 500
         })
-      });
-      
+      }); // 🚨 এখানে fetch বন্ধ করার ব্র্যাকেট ও সেমিকোলন ঠিক করা হয়েছে
+
       const data = await response.json();
       
       if (data.choices && data.choices[0]?.message?.content) {
