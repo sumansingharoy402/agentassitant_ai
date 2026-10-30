@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Settings from './Settings';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('email');
@@ -56,12 +55,11 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 এন্ডপয়েন্ট এবং হেডার পরিবর্তন করা হলো (AQ. Key-এর জন্য)
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': GLOBAL_API_KEY  // 🚨 Bearer এর বদলে x-goog-api-key
+            'x-goog-api-key': GLOBAL_API_KEY 
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }]
@@ -129,7 +127,6 @@ export default function Dashboard() {
           <li style={{ padding: '12px 15px', marginBottom: '5px', borderRadius: '8px', cursor: 'pointer', backgroundColor: activeTab === 'email' ? '#3498db' : 'transparent', fontWeight: activeTab === 'email' ? 'bold' : 'normal' }} onClick={() => setActiveTab('email')}>✉️ Email Generator</li>
           <li style={{ padding: '12px 15px', marginBottom: '5px', borderRadius: '8px', cursor: 'pointer', backgroundColor: activeTab === 'review' ? '#3498db' : 'transparent', fontWeight: activeTab === 'review' ? 'bold' : 'normal' }} onClick={() => setActiveTab('review')}>⭐ Review Replier</li>
           <li style={{ padding: '12px 15px', marginBottom: '5px', borderRadius: '8px', cursor: 'pointer', backgroundColor: activeTab === 'description' ? '#3498db' : 'transparent', fontWeight: activeTab === 'description' ? 'bold' : 'normal' }} onClick={() => setActiveTab('description')}>🏠 Property Descriptions</li>
-          <li style={{ padding: '12px 15px', borderRadius: '8px', cursor: 'pointer', backgroundColor: activeTab === 'settings' ? '#3498db' : 'transparent', fontWeight: activeTab === 'settings' ? 'bold' : 'normal' }} onClick={() => setActiveTab('settings')}>⚙️ Settings</li>
         </ul>
       </div>
 
@@ -153,7 +150,6 @@ export default function Dashboard() {
               {showProfileMenu && (
                 <div style={{ position: 'absolute', top: '48px', right: '0', backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`, borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', width: '160px', zIndex: 10 }}>
                   <div style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: `1px solid ${theme.border}`, color: theme.text }}>👤 My Profile</div>
-                  <div style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: `1px solid ${theme.border}`, color: theme.text }} onClick={() => { setActiveTab('settings'); setShowProfileMenu(false); }}>⚙️ Settings</div>
                   <div style={{ padding: '12px 15px', cursor: 'pointer', color: '#e74c3c', fontWeight: 'bold' }}>🚪 Logout</div>
                 </div>
               )}
@@ -176,8 +172,6 @@ export default function Dashboard() {
               <h2 style={{ margin: '10px 0 0 0', color: '#e67e22', fontSize: '28px' }}>19</h2>
             </div>
           </div>
-
-          {activeTab === 'settings' && <Settings />}
 
           {activeTab === 'email' && (
             <div>
