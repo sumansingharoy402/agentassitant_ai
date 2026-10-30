@@ -55,7 +55,7 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 OpenRouter API এন্ডপয়েন্ট
+      // 🚨 OpenRouter API এন্ডপয়েন্ট - Fallback Models
       const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
         method: 'POST',
         headers: { 
@@ -65,7 +65,12 @@ export default function Dashboard() {
             'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-         model: "cohere/north-mini-code:free", // 🚨 নতুন নির্ভরযোগ্য মডেল
+          // 🚨 Fallback Models: প্রথমটি ফেইল করলে পরেরটি চেষ্টা করবে
+          models: [
+            "google/gemma-4-26b-a4b-it:free",
+            "nvidia/nemotron-3-ultra-550b-a55b:free",
+            "cohere/north-mini-code:free"
+          ],
           messages: [{ role: "user", content: prompt }],
           max_tokens: 500
         })
