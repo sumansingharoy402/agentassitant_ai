@@ -65,7 +65,7 @@ export default function Dashboard() {
             'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          model: "google/gemma-4-26b-a4b-it:free",
+          model: "qwen/qwen3-coder:free",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 500
         })
