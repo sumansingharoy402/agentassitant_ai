@@ -65,7 +65,7 @@ export default function Dashboard() {
             'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          model: "qwen/qwen3-coder:free",
+          model: "meta-llama/llama-3.3-70b-instruct:free", // 🚨 নতুন নির্ভরযোগ্য মডেল
           messages: [{ role: "user", content: prompt }],
           max_tokens: 500
         })
@@ -73,7 +73,7 @@ export default function Dashboard() {
       
       const data = await response.json();
       
-      if (data.choices && data.choices[0].message.content) {
+      if (data.choices && data.choices[0]?.message?.content) {
         setResult(data.choices[0].message.content);
       } else {
         setResult("Error: " + (data.error?.message || "Could not generate response."));
