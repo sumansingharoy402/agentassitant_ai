@@ -65,7 +65,7 @@ export default function Dashboard() {
             'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          model: "meta-llama/llama-3.3-70b-instruct:free", // 🚨 নতুন নির্ভরযোগ্য মডেল
+          model: "nvidia/nemotron-3-super-120b-a12b:free", // 🚨 নতুন নির্ভরযোগ্য মডেল
           messages: [{ role: "user", content: prompt }],
           max_tokens: 500
         })
