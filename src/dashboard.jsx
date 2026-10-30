@@ -7,8 +7,8 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // 🚨 API Key Environment Variable থেকে আসবে (AQ. Key)
-  const GLOBAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+  // 🚨 API Key (OpenRouter Key)
+  const GLOBAL_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || "";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
@@ -55,22 +55,26 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 AQ. Key-এর জন্য সঠিক এন্ডপয়েন্ট
-      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/projects/-/locations/global/publishers/google/models/gemini-2.5-flash:generateContent`, {
+      // 🚨 OpenRouter API এন্ডপয়েন্ট (সবচেয়ে নির্ভরযোগ্য)
+      const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': GLOBAL_API_KEY  // 🚨 AQ. Key-এর জন্য x-goog-api-key
+            'Authorization': `Bearer ${GLOBAL_API_KEY}`,
+            'HTTP-Referer': 'https://agentassistant-ai.vercel.app',
+            'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
+          model: "openrouter/free", // 🚨 ফ্রি রাউটার
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 500
         })
       });
       
       const data = await response.json();
       
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        setResult(data.candidates[0].content.parts[0].text);
+      if (data.choices && data.choices[0]?.message?.content) {
+        setResult(data.choices[0].message.content);
       } else {
         setResult("Error: " + (data.error?.message || "Could not generate response."));
       }
@@ -108,26 +112,28 @@ export default function Dashboard() {
 
   const getWordCount = (text) => text ? text.trim().split(/\s+/).length : 0;
 
+  // 🎨 নতুন প্রিমিয়াম ডিজাইন থিম
   const theme = {
-    bg: darkMode ? '#111827' : '#f9fafb',
-    sidebar: darkMode ? '#1f2937' : '#ffffff',
-    sidebarBorder: darkMode ? '#374151' : '#e5e7eb',
-    text: darkMode ? '#f9fafb' : '#111827',
-    subText: darkMode ? '#9ca3af' : '#6b7280',
-    inputBg: darkMode ? '#374151' : '#ffffff',
-    inputBorder: darkMode ? '#4b5563' : '#d1d5db',
-    cardBg: darkMode ? '#1f2937' : '#ffffff',
-    cardBorder: darkMode ? '#374151' : '#e5e7eb',
-    primary: '#6366f1',
-    primaryHover: '#4f46e5',
-    accent: '#10b981',
+    bg: darkMode ? '#0f172a' : '#f8fafc',
+    sidebar: darkMode ? '#1e293b' : '#ffffff',
+    sidebarBorder: darkMode ? '#334155' : '#e2e8f0',
+    text: darkMode ? '#f1f5f9' : '#0f172a',
+    subText: darkMode ? '#94a3b8' : '#64748b',
+    inputBg: darkMode ? '#1e293b' : '#ffffff',
+    inputBorder: darkMode ? '#334155' : '#cbd5e1',
+    cardBg: darkMode ? '#1e293b' : '#ffffff',
+    cardBorder: darkMode ? '#334155' : '#e2e8f0',
+    primary: '#8b5cf6', // ভায়োলেট
+    primaryHover: '#7c3aed',
+    accent: '#10b981', // সবুজ
     danger: '#ef4444',
-    resultBg: darkMode ? '#1e293b' : '#f8fafc',
+    resultBg: darkMode ? '#1e293b' : '#f1f5f9',
   };
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Inter, system-ui, sans-serif', backgroundColor: theme.bg }}>
       
+      {/* সাইডবার */}
       <div style={{ width: '260px', backgroundColor: theme.sidebar, borderRight: `1px solid ${theme.sidebarBorder}`, padding: '24px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '40px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: theme.primary, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '20px' }}>A</div>
@@ -147,8 +153,10 @@ export default function Dashboard() {
         </nav>
       </div>
 
+      {/* মূল কন্টেন্ট */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         
+        {/* টপ বার */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 32px', borderBottom: `1px solid ${theme.cardBorder}`, backgroundColor: theme.sidebar }}>
           <h1 style={{ fontSize: '18px', fontWeight: '600', color: theme.text, margin: 0 }}>Dashboard</h1>
           
@@ -175,8 +183,10 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* মেইন এরিয়া */}
         <div style={{ padding: '32px', flex: 1, overflowY: 'auto' }}>
           
+          {/* স্ট্যাটস কার্ড */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '32px' }}>
             <div style={{ backgroundColor: theme.cardBg, padding: '24px', borderRadius: '16px', border: `1px solid ${theme.cardBorder}`, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
               <h4 style={{ margin: 0, color: theme.subText, fontSize: '14px', fontWeight: '500' }}>Total Emails</h4>
@@ -192,6 +202,7 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* ইমেইল জেনারেটর */}
           {activeTab === 'email' && (
             <div style={{ maxWidth: '600px' }}>
               <h2 style={{ color: theme.text, fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>✉️ AI Email Generator</h2>
@@ -228,6 +239,7 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* রিভিউ রিপ্লাই */}
           {activeTab === 'review' && (
             <div style={{ maxWidth: '600px' }}>
               <h2 style={{ color: theme.text, fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>⭐ Google Review Replier</h2>
@@ -251,6 +263,7 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* প্রপার্টি ডেসক্রিপশন */}
           {activeTab === 'description' && (
             <div style={{ maxWidth: '600px' }}>
               <h2 style={{ color: theme.text, fontSize: '20px', fontWeight: '600', marginBottom: '24px' }}>🏠 Property Description Writer</h2>
@@ -276,6 +289,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* আপগ্রেড মডাল */}
       {showUpgradeModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 100 }}>
           <div style={{ backgroundColor: theme.cardBg, padding: '32px', borderRadius: '16px', width: '400px', position: 'relative', border: `1px solid ${theme.cardBorder}` }}>
