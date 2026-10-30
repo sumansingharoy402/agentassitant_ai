@@ -7,7 +7,7 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // 🚨 API Key Environment Variable থেকে আসবে
+  // 🚨 API Key Environment Variable থেকে আসবে (OpenRouter Key)
   const GLOBAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
@@ -55,22 +55,26 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 Express Mode কী-এর জন্য সঠিক এন্ডপয়েন্ট এবং x-goog-api-key হেডার
-      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/projects/-/locations/global/publishers/google/models/gemini-3.8-flash:generateContent`, {
+      // 🚨 OpenRouter API এন্ডপয়েন্ট
+      const response = await fetch(`https://openrouter.ai/api/v1/chat/completions`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': GLOBAL_API_KEY 
+            'Authorization': `Bearer ${GLOBAL_API_KEY}`,
+            'HTTP-Referer': 'https://agentassistant-ai.vercel.app',
+            'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
+          model: "google/gemini-2.0-flash-exp:free",  // 🚨 ফ্রি মডেল
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: 500
         })
       });
       
       const data = await response.json();
       
-      if (data.candidates && data.candidates[0].content.parts[0].text) {
-        setResult(data.candidates[0].content.parts[0].text);
+      if (data.choices && data.choices[0].message.content) {
+        setResult(data.choices[0].message.content);
       } else {
         setResult("Error: " + (data.error?.message || "Could not generate response."));
       }
