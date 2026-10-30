@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('email');
@@ -65,7 +65,7 @@ export default function Dashboard() {
             'X-Title': 'AgentAssist AI'
         },
         body: JSON.stringify({
-          model: "google/gemini-2.0-flash-exp:free",  // 🚨 ফ্রি মডেল
+          model: "google/gemini-2.0-flash-exp:free",
           messages: [{ role: "user", content: prompt }],
           max_tokens: 500
         })
