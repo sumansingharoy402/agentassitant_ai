@@ -8,8 +8,8 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // 🚨 এখানে আপনার গ্লোবাল API Key বসান
-  const GLOBAL_API_KEY = "AIzaSy...আপনার_আসল_কী_এখানে_দিন"; 
+  // 🚨 API Key Environment Variable থেকে আসবে
+  const GLOBAL_API_KEY = import.meta.env.GEMINI_API_KEY || "";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
@@ -48,13 +48,20 @@ export default function Dashboard() {
   const callGeminiAPI = async (prompt, setResult) => {
     setLoading(true);
     setResult('');
+    
+    if (!GLOBAL_API_KEY) {
+      setResult("Error: API Key is missing. Please contact admin.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      // 🚨 এখানে নতুন মডেল gemini-3.8-flash এবং গ্লোবাল API Key ব্যবহার করা হচ্ছে
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent`, {
+      // 🚨 এন্ডপয়েন্ট এবং হেডার পরিবর্তন করা হলো (AQ. Key-এর জন্য)
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': GLOBAL_API_KEY 
+            'x-goog-api-key': GLOBAL_API_KEY  // 🚨 Bearer এর বদলে x-goog-api-key
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }]
