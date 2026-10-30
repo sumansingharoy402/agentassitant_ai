@@ -55,8 +55,8 @@ export default function Dashboard() {
     }
 
     try {
-      // 🚨 `generativelanguage` এন্ডপয়েন্ট এবং `x-goog-api-key` হেডার (AIzaSy Key-এর জন্য)
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
+      // 🚨 Express Mode কী-এর জন্য সঠিক এন্ডপয়েন্ট এবং x-goog-api-key হেডার
+      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/projects/-/locations/global/publishers/google/models/gemini-3.8-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
