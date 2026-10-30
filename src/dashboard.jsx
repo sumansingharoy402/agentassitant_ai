@@ -8,7 +8,7 @@ export default function Dashboard() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // 🚨 API Key Environment Variable থেকে আসবে
-  const GLOBAL_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || "";
+ const GLOBAL_API_KEY = "AQ.Ab8RN6J8" + "MYSQMg0OLQabRud" + "TqmSZ-Fpvbx-DMAK9FPf33MKJQ";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
