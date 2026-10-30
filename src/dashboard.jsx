@@ -7,8 +7,8 @@ export default function Dashboard() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // 🚨 API Key Environment Variable থেকে আসবে
- const GLOBAL_API_KEY = "AQ.Ab8RN6J8" + "MYSQMg0OLQabRud" + "TqmSZ-Fpvbx-DMAK9FPf33MKJQ";
+  // 🚨 আপনার নতুন API Key (AQ. ফরম্যাট)
+  const GLOBAL_API_KEY = "AQ.Ab8RN6J8" + "MYSQMg0OLQabRud" + "TqmSZ-Fpvbx-DMAK9FPf33MKJQ";
   
   const [userPlan, setUserPlan] = useState(localStorage.getItem('user_plan') || 'free');
   
@@ -55,11 +55,12 @@ export default function Dashboard() {
     }
 
     try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
+      // 🚨 aiplatform এন্ডপয়েন্ট এবং Bearer হেডার (AQ. Key-এর জন্য)
+      const response = await fetch(`https://aiplatform.googleapis.com/v1beta1/publishers/google/models/gemini-2.5-flash:generateContent`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            'x-goog-api-key': GLOBAL_API_KEY 
+            'Authorization': `Bearer ${GLOBAL_API_KEY}` 
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }]
